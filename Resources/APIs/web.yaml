@@ -1,0 +1,1502 @@
+openapi: 3.0.2
+info:
+  version: 0.0.1
+  title: web
+  description: >
+    Contains APIs exposed for Web UI
+security:
+  - bearerAuth: [ ]
+paths:
+  /me/acceptEula:
+    post:
+      summary: Accept the eula
+      tags:
+        - me
+        - eula
+      description: >
+        Should be called before calling other APIs.
+        Frontend developer should ensure that acceptEula property is true.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EulaAcceptance"
+      responses:
+        200:
+          description: Ok. Other APIs can be called now.
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/:
+    summary: Authorized user's profile
+    get:
+      tags:
+        - me
+        - profile
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/User"
+                  - $ref: "#/components/schemas/UserProfile"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+    put:
+      summary: Modify the profile
+      tags:
+        - me
+        - profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: "Property isAdmin will be ignored"
+              oneOf:
+                - $ref: "#/components/schemas/UserProfile"
+                - $ref: "#/components/schemas/User"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/User"
+                  - $ref: "#/components/schemas/UserProfile"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/privacy:
+    description: Privacy settings
+    get:
+      tags:
+        - me
+        - privacy
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrivacyOptions"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+    put:
+      summary: Modify privacy settings
+      tags:
+        - me
+        - privacy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/PrivacyOptions"
+                - $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrivacyOptions"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/privacy/account/delete:
+    description: Delete the account
+    post:
+      tags:
+        - me
+        - privacy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        400:
+          description: All minecraft accounts bound should be unbound before deleting the account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteAccountFailure"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/privacy/data/download:
+    summary: Download privacy data
+    description: Currently have nothing to provide
+    # TODO provide collected privacy data
+    get:
+      tags:
+        - me
+        - privacy
+      responses:
+        400:
+          description: Not implemented
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotImplementedError"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/minecraft/summary:
+    get:
+      summary: Get minecraft summary
+      tags:
+        - me
+        - minecraft
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MinecraftSummary"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/minecraft/accounts:
+    get:
+      summary: Get a list of bound minecraft accounts
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                description: "Could be empty if no account bound"
+                items:
+                  $ref: "#/components/schemas/MinecraftAccount"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+    post:
+      summary: Create a minecraft account and bind to this account
+      tags:
+        - me
+        - minecraft
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MinecraftAccountCreation"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                description: "Could be empty if no account bound"
+                items:
+                  $ref: "#/components/schemas/MinecraftAccount"
+        400:
+          description: Cannot create new minecraft account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MinecraftAccountCreationFailure"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/minecraft/account/bind/:
+    post:
+      summary: Bind a minecraft account
+      tags:
+        - me
+        - minecraft
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/MinecraftAccountTransfer"
+                - $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MinecraftAccountTransferFailure"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/minecraft/account/{accountName}:
+    get:
+      summary: Get minecraft account summary
+      tags:
+        - me
+        - minecraft
+      parameters:
+        - name: accountName
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MinecraftAccount"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        404:
+          description: Requested account not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MinecraftAccountNotExist"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/minecraft/account/{accountName}/unbind:
+    post:
+      summary: Unbind specified minecraft account
+      tags:
+        - me
+        - minecraft
+      parameters:
+        - name: accountName
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: >
+            Success.
+            Note that property token will contains a generated transfer token
+             used to bind to another account.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MinecraftAccountTransfer"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        400:
+          description: Failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MinecraftAccountTransferFailure"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/minecraft/account/{accountName}/authorizeClient:
+    post:
+      summary: Grant access
+      description: >
+        Grant access of the specified account for the client side plugin
+      tags:
+        - me
+        - minecraft
+        - authorization
+      parameters:
+        - name: accountName
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/MinecraftPluginAuthorization"
+                - $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/minecraft/account/{accountName}/deauthorizeClient:
+    post:
+      summary: Revoke access of the given token
+      tags:
+        - me
+        - minecraft
+        - authorization
+      parameters:
+        - name: accountName
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MinecraftPluginAuthorization"
+      responses:
+        200:
+          description: Success
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/minecraft/accounts/authorizeclient:
+    post:
+      summary: Grant access
+      description: >
+        Grant access of all bound minecraft accounts for the client side plugin
+      tags:
+        - me
+        - minecraft
+        - authorization
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/MinecraftPluginAuthorization"
+                - $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/minecraft/accounts/deauthorizeClient:
+    post:
+      summary: Revoke access of the given token
+      tags:
+        - me
+        - minecraft
+        - authorization
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MinecraftPluginAuthorization"
+      responses:
+        200:
+          description: Success
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /me/logout:
+    get:
+      summary: Sign out
+      tags:
+        - me
+      responses:
+        200:
+          description: Success
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /users/:
+    post:
+      security: [ ]
+      summary: Create a user
+      operationId: createUser
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/UserCreation"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/User"
+                  - $ref: "#/components/schemas/JWTToken"
+        400:
+          description: Fail to create a user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserCreationFailure"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+    get:
+      security: [ ]
+      summary: List users
+      description: >
+        A single response contains 100 users at most.
+        You have to call this api repeatedly(with correct page parameter) to get the whole list.
+      operationId: listUsers
+      tags:
+        - users
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: "Success"
+          headers:
+            X-Next-Page:
+              schema:
+                type: integer
+                format: int32
+                description: The id of the next page.
+            X-Page-Num:
+              schema:
+                type: integer
+                format: int32
+                description: Number of all the pages.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: "#/components/schemas/User"
+                    - $ref: "#/components/schemas/UserProfile"
+        400:
+          description: Fail
+          headers:
+            X-Page-Num:
+              schema:
+                type: integer
+                format: int32
+                description: Number of all the pages.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListUsersFailure"
+        default:
+          description: "Unexpected error"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /users/login:
+    post:
+      security: [ ]
+      description: Login using email/username and password
+      operationId: passwordLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPasswordLogin"
+      responses:
+        "200":
+          description: Success
+          content:
+            "application/json":
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/User"
+                  - $ref: "#/components/schemas/JWTToken"
+        "401":
+          description: Not authorized
+          content:
+            applicatrion/json:
+              schema:
+                $ref: "#/components/schemas/UserLoginFailure"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /admin/:
+    summary: Anthenticated user's admin profile
+    description: >
+      APIs under /admin can only be used when authenticated user is admin
+    get:
+      tags:
+        - admin
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminProfile"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /admin/{username}:
+    summary: Specified user's admin profile
+    get:
+      tags:
+        - admin
+      parameters:
+        - name: username
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminProfile"
+        404:
+          description: User not exist
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /admin/{username}/adminLevel/increase:
+    post:
+      tags:
+        - admin
+      summary: Increase user's admin level
+      description: >
+        If user requested to be banned is an administrator,
+        you must have a higher adminLevel.
+      parameters:
+        - name: username
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOperationFailure"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        404:
+          description: User not exist
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /admin/{username}/adminLevel/decrease:
+    post:
+      tags:
+        - admin
+      summary: Decrease user's admin level
+      description: >
+        If user requested to be banned is an administrator,
+          you must have a higher adminLevel.
+      parameters:
+        - name: username
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOperationFailure"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        404:
+          description: User not exist
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /admin/{username}/ban:
+    post:
+      tags:
+        - admin
+      summary: Ban an user
+      description: >
+        If user requested to be banned is an administrator,
+          you must have a higher adminLevel.
+      parameters:
+        - name: username
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOperationFailure"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        404:
+          description: User not exist
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /admin/{username}/unban:
+    post:
+      tags:
+        - admin
+      summary: Unban an user
+      description: >
+        If user requested to be unbanned is an administrator,
+          you must have a higher adminLevel.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Confirmation"
+      parameters:
+        - name: username
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Success
+        400:
+          description: Failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOperationFailure"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        404:
+          description: User not exist
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /admin/minecraft/account/{accountName}/ban:
+    summary: Ban specified minecraft account
+    post:
+      tags:
+        - admin
+      parameters:
+        - name: accountName
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOperationFailure"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        404:
+          description: User not exist
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /admin/minecraft/account/{accountName}/unban:
+    summary: Ban specified minecraft account
+    post:
+      tags:
+        - admin
+      parameters:
+        - name: accountName
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOperationFailure"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        404:
+          description: User not exist
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /admin/minecraft/account/{accountName}/setPermissions:
+    summary: Set permission of given minecraft account
+    post:
+      tags:
+        - admin
+      parameters:
+        - name: accountName
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/MinecraftAccountSetPermissions"
+                - $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOperationFailure"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        404:
+          description: User not exist
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /admin/minecraft/account/{accountName}/bindTo/{username}:
+    post:
+      tags:
+        - admin
+      parameters:
+        - name: accountName
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Minecraft username
+        - name: username
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOperationFailure"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        404:
+          description: User not exist
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /admin/minecraft/account/{accountName}/unbind:
+    post:
+      tags:
+        - admin
+      parameters:
+        - name: accountName
+          in: path
+          schema:
+            type: string
+          required: true
+          description: Minecraft username
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOperationFailure"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        404:
+          description: User not exist
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /admin/minecraft/server/authorize:
+    post:
+      tags:
+        - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/ServerCredential"
+                - $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOperationFailure"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+  /admin/minecraft/server/deauthorize:
+    post:
+      tags:
+        - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/ServerCredential"
+                - $ref: "#/components/schemas/Confirmation"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOperationFailure"
+        401:
+          description: Not authorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedError"
+        404:
+          description: Server not exist
+        default:
+          description: Unexpeted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnexpectedError"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    EulaAcceptance:
+      description: Indicates whether eula or terms of service is accepted or not
+      type: object
+      properties:
+        acceptEula:
+          type: boolean
+          default: false
+    PrivacyProperty:
+      type: string
+      enum:
+        - os
+        - email
+        - bio
+        - avatar
+        - totalOnlineTime
+        - lastSeen
+        - minecraft
+    PrivacyOptions:
+      type: object
+      properties:
+        naked:
+          description: >
+            Naked mode: disable all the privacy restrictions, all the privacy data goes public.
+            This property won't be true unless the user explicitly chooses to be.
+            *Suggested by Mr.Huang*
+          type: boolean
+          default: false
+        publicProperties:
+          description: >
+            Privacy properties in this array are considered as public visible.
+          type: array
+          items:
+            $ref: "#/components/schemas/PrivacyProperty"
+    Confirmation:
+      type: object
+      required:
+        - confirm
+        - password
+      properties:
+        confirm:
+          type: boolean
+        password:
+          type: string
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - isAdmin
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique uuid v4 user id
+        name:
+          type: string
+          description: The unique username
+        isAdmin:
+          type: boolean
+          description: Indicates whether the user is administrator or not
+        isBanned:
+          type: boolean
+    UserProfile:
+      type: object
+      properties:
+        displayName:
+          type: string
+        email:
+          type: string
+          format: email
+        bio:
+          type: string
+        avatar:
+          type: string
+          format: byte
+          description: Base64-encoded contents of the avatar image
+        signupAt:
+          type: string
+        minecraft:
+          #TODO
+          $ref: "#/components/schemas/MinecraftSummary"
+        hasBeenBanned:
+          type: boolean
+    UserCreation:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - name
+        - email
+        - password
+    OS:
+      type: string
+      enum:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+    MinecraftSummary:
+      type: object
+      properties:
+        mostUsedAccount:
+          type: string
+        mostUsedOS:
+          $ref: "#/components/schemas/OS"
+        lastSeen:
+          type: string
+        totalOnlineTime:
+          type: string
+        hasBeenBanned:
+          type: boolean
+        accounts:
+          type: array
+          items:
+            type: string
+        accountNumLimit:
+          type: integer
+          format: int32
+    MinecraftAccountPermission:
+      description: >
+        OP here is not a traditional concept.
+        OP users have and only have the permission(s) listed below.
+      type: string
+      enum:
+        - isOP
+        - canFly
+        - canSetTime
+        - canSetWeather
+        - canEditWorld
+        - canTP
+        - canSwitchWorld
+        - canSwitchGameMode
+        - canGive
+    MinecraftAccount:
+      type: object
+      properties:
+        lastSeen:
+          type: string
+        totalOnlineTime:
+          type: string
+        oses:
+          type: array
+          items:
+            $ref: "#/components/schemas/OS"
+        level:
+          type: integer
+          format: int32
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/MinecraftAccountPermission"
+        isBanned:
+          type: boolean
+    MinecraftAccountSetPermissions:
+      type: object
+      properties:
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/MinecraftAccountPermission"
+    MinecraftAccountTransfer:
+      type: object
+      required:
+        - usingLegacyAuthorizationSystem
+        - name
+        - token
+      properties:
+        usingLegacyAuthorizationSystem:
+          type: boolean
+          default: false
+        name:
+          type: string
+        token:
+          type: string
+    MinecraftAccountCreation:
+      type: object
+      properties:
+        name:
+          type: string
+    JWTToken:
+      description: An object that contains a JWT Token
+      type: object
+      properties:
+        token:
+          type: string
+          description: A JWT Token
+    UserPasswordLogin:
+      description: Login to the service using username/email and password.
+      type: object
+      required:
+        - password
+        - usernameOrEmail
+      properties:
+        usernameOrEmail:
+          type: string
+        password:
+          type: string
+    MinecraftPluginAuthorization:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+    UserCreationFailure:
+      type: object
+      properties:
+        reason:
+          type: string
+          enum:
+            - passwordTooSimple
+            - usernameConflict
+    ListUsersFailure:
+      type: object
+      properties:
+        reason:
+          type: string
+          enum:
+            - requestedPageOutOfRange
+    UserLoginFailure:
+      type: object
+      properties:
+        reason:
+          type: string
+          enum:
+            - credentialsNotMatched
+            - banedOrDeleted
+    UnexpectedError:
+      type: object
+      properties:
+        error:
+          type: boolean
+          description: Will always be true if raised
+        reason:
+          type: string
+          description: The explaination of the error
+    UnauthorizedError:
+      type: object
+      properties:
+        reason:
+          type: string
+          enum:
+            - invalidCredential
+            - notLogin
+            - serverNotVerified
+    DeleteAccountFailure:
+      type: object
+      properties:
+        reason:
+          type: string
+          enum:
+            - allMinecraftAccountsShouldBeUnbinded
+    NotImplementedError:
+      type: object
+      properties:
+        reason:
+          type: string
+          enum:
+            - notImplemented
+            - inDevelopment
+    MinecraftAccountCreationFailure:
+      type: object
+      properties:
+        reason:
+          type: string
+          enum:
+            - usernameConflict
+            - reachNumLimit
+    MinecraftAccountTransferFailure:
+      type: object
+      properties:
+        reason:
+          type: string
+          enum:
+            - wrongCredentialPair
+            - alreadyBound
+            - reachNumLimit
+            - notBelongToYou
+    MinecraftAccountNotExist:
+      type: object
+      properties:
+        reason:
+          type: string
+          enum:
+            - notExist
+    AdminOperationFailure:
+      type: object
+      properties:
+        resaon:
+          type: string
+          enum:
+            - lowAdminLevel
+    AdminProfile:
+      type: object
+      required:
+        - adminLevel
+        - isAdminSince
+      properties:
+        adminLevel:
+          type: integer
+          format: inte32
+        isAdminSince:
+          type: string
+    ServerCredential:
+      type: object
+      properties:
+        token:
+          type: string
